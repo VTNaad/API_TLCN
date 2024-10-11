@@ -7,8 +7,7 @@ const { verifyAccessToken, isAdmin } = require("../middleware/jwt");
 const router = express.Router();
 
 // API User
-router.get("/user/byToken", verifyAccessToken, userController.getUserFromToken);
-router.get("/user/logout", verifyAccessToken, userController.logout);
+router.get("/user/getUserToken", verifyAccessToken, userController.getUserFromToken);
 router.get("/user/forgotPassword", userController.forgotPassword);
 router.get("/user/editProfileSendOTP", userController.editProfileSendOTP);
 router.post("/user/sendOTP", userController.sendOTP);

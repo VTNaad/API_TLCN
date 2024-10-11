@@ -84,7 +84,7 @@ class UserController {
     }
   }
 
-  //[GET] getUserFromToken
+  //[GET] /user/getUserToken
   // Sử dụng verifyAccessToken để xác thực trước khi lấy user
   async getUserFromToken(req, res) {
     try {
@@ -113,7 +113,6 @@ class UserController {
     try {
       const { username, password, fullname, email, phone } = req.body;
 
-      // thiếu role với cart
       if (!username || !password || !fullname || !email || !phone) {
         return res
           .status(400)
@@ -145,15 +144,6 @@ class UserController {
         return res
           .status(400)
           .json({ success: false, message: "Missing inputs" });
-
-      // Kiểm tra tồn tại
-      // const check = await checkDocumentById(User, id);
-      // if (!check.exists) {
-      //   return res.status(400).json({
-      //     success: false,
-      //     message: check.message,
-      //   });
-      // }
 
       // Cập nhật user
       const updatedUser = await User.findByIdAndUpdate(_id, req.body, {
@@ -210,15 +200,12 @@ class UserController {
           message: check.message,
         });
       }
-      // Xóa Cart liên quan đến User trước khi xóa User
-      await Cart.delete({ user: id });
 
       await User.delete({ _id: req.params.id });
       res.status(200).json({
         success: true,
         message: "Delete successful",
       });
-      // res.redirect("back");
     } catch (error) {
       console.error(error);
       res.status(500).json({
@@ -231,15 +218,12 @@ class UserController {
   async forceDelete(req, res, next) {
     try {
       const { id } = req.params;
-      // Xóa Cart liên quan đến User trước khi xóa User
-      await Cart.deleteOne({ user: id });
 
       await User.deleteOne({ _id: id });
       res.status(200).json({
         success: true,
         message: "Delete Force successful",
       });
-      // res.redirect("back");
     } catch (error) {
       console.error(error);
       res.status(500).json({
@@ -278,7 +262,6 @@ class UserController {
           .json({ success: false, message: "Missing inputs" });
       let user = await User.findOne({ email });
       let name = await User.findOne({ username });
-      let Phone = await User.findOne({ phone });
       // Tạo tài khoản thì ms cần check email exist để loại
       if (action === "CreateAccount"){
         if (!phone || phone.length !== 10 || isNaN(phone)) {
@@ -286,7 +269,6 @@ class UserController {
         }
         if (user) throw new Error("User existed !!!");
         if (name) throw new Error("Username existed !!!");
-        if (Phone) throw new Error("Phone existed !!!");
       }
       let otp_code = Math.floor(100000 + Math.random() * 900000);
       otp_code = otp_code.toString();
@@ -328,13 +310,13 @@ class UserController {
             <body>
                 <div class="container">
                     <div class="content">
-                        <h1>Book Store</h1>
+                        <h1>Speaking English</h1>
                         <p>Xin chào,</p>
                         <p>Đây là mã OTP của bạn.</p>
                         <strong style="color: #da4f25;">OTP : ${otp_code}</strong>
                         <p>Cảm ơn bạn đã tin tưởng sử dụng web của chúng tôi!</p>
                         <p>Trân trọng,</p>
-                        <p>Book Store</p>
+                        <p>D&H</p>
                     </div>
                 </div>
             </body>
@@ -399,13 +381,13 @@ class UserController {
               <body>
                   <div class="container">
                       <div class="content">
-                          <h1>Book Store</h1>
+                          <h1>Speaking English</h1>
                           <p>Xin chào,</p>
                           <p>Đây là OTP để chỉnh sửa tài khoản của bạn.</p>
                           <strong style="color: #da4f25;">OTP : ${otp_code}</strong>
                           <p>Cảm ơn bạn đã tin tưởng sử dụng web của chúng tôi!</p>
                           <p>Trân trọng,</p>
-                          <p>Book Store</p>
+                          <p>D&H</p>
                       </div>
                   </div>
               </body>
@@ -458,9 +440,7 @@ class UserController {
           .status(400)
           .json({ success: false, message: "Missing inputs" });
       }
-      // Mỗi khi truy vấn bằng cú pháp mongooseDb
-      // response trả về là một instance của mongooseDb
-      // chứ không đơn giản là một object Data
+
       // Nếu muốn dùng object thuần (plain obj) thì dùng hàm toObject()
       const response = await User.findOne({ username });
       // Phải có else ở dưới vì khi không đúng mật khẩu thì hàm isCorrectPassword vẫn không sinh ra lỗi
@@ -469,25 +449,6 @@ class UserController {
         const { password, role, ...userData } = response.toObject();
         //Tạo accessToken
         const accessToken = generateAccessToken(response._id, role);
-        //const refreshToken = generateRefreshToken(response._id);
-
-        // Lưu refreshToken vào database
-        // new : true : trả và data sau khi update
-        // await User.findByIdAndUpdate(
-        //   response._id,
-        //   { refreshToken },
-        //   { new: true }
-        // );
-
-        //Lưu refreshToken vào cookie
-        // res.cookie("refreshToken", refreshToken, {
-        //   httpOnly: true,
-        //   // secure: true, // Đảm bảo chỉ gửi cookie qua HTTPS trong môi trường production
-        //   // sameSite: "strict",
-        //   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 ngày
-        // });
-
-        // Lưu accessToken lên authorization
 
         return res.status(200).json({ success: true, accessToken, userData });
       } else {
@@ -519,11 +480,6 @@ class UserController {
   //[PUT] /user/refreshAccessToken
   async refreshAccessToken(req, res, next) {
     try {
-      // Lấy Refreshtoken từ cookies
-      const cookie = req.cookies;
-      // Check xem có tồn tại refreshToken hay không
-      if (!cookie || !cookie.refreshToken)
-        throw new Error("No refreshToken in cookies");
       var cert = fs.readFileSync("../key/publickey.crt");
       // Check xem refreshToken có hợp lệ hay không
       jwt.verify(
@@ -546,28 +502,6 @@ class UserController {
           });
         }
       );
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  //[PUT] /user/logout
-  async logout(req, res, next) {
-    try {
-      const cookie = req.cookies;
-      // Check xem có tồn tại refreshToken hay không(nếu ko có thì có nghĩa chưa đăng nhập)
-      if (!cookie || !cookie.refreshToken) {
-        throw new Error("No Refresh Token in cookies");
-      }
-      // xóa refreshToken trong db
-      await User.findOneAndUpdate(
-        { refreshToken: cookie.refreshToken },
-        { refreshToken: "" },
-        { new: true }
-      );
-      // xóa refreshToken trong cookie trình duyệt
-      res.clearCookie("refreshToken", { httpOnly: true, secure: true });
-      res.status(200).json({ success: true, message: "Logout successful" });
     } catch (error) {
       next(error);
     }
@@ -624,14 +558,14 @@ class UserController {
             <body>
                 <div class="container">
                     <div class="content">
-                        <h1>Book Store</h1>
+                        <h1>Speaking English</h1>
                         <p>Xin chào, <span style="font-weight: bold;">${user?.username}</span>!</p>
                         <p>Xin vui lòng click vào đường link dưới đây để thay đổi mật khẩu của bạn.</p>
                         <p>Link này sẽ hết hạn sau 15 phút kể từ bây giờ. </p>
                         <strong style="color: #da4f25;"><a href=${process.env.URL_SERVER}/user/resetPassword/${resetToken}>Click here</a></strong>
                         <p>Cảm ơn bạn đã tin tưởng sử dụng web của chúng tôi!</p>
                         <p>Trân trọng,</p>
-                        <p>Book Store</p>
+                        <p>D&H</p>
                     </div>
                 </div>
             </body>

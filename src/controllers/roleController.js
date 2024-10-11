@@ -34,7 +34,7 @@ class RoleController {
           .json({ success: false, message: "Missing inputs" });
       }
 
-      // Nếu tên chưa tồn tại, tạo tài liệu mới
+      // Nếu tên chưa tồn tại tạo mới
       const role = new Role({ name });
       const savedRole = await role.save();
 
