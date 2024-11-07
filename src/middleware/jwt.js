@@ -1,11 +1,10 @@
 var jwt = require("jsonwebtoken");
 var fs = require("fs");
+const path = require('path');
 const Role = require("../models/Role");
 
 // Encode
 // file privateKey được tạo từ OpenSSL
-//var privateKey = fs.readFileSync("../public/private.pem");
-const path = require('path');
 const privateKeyPath = path.join(__dirname, '../public/private.pem');
 const privateKey = fs.readFileSync(privateKeyPath, 'utf8');
 const generateAccessToken = (uid, role) =>
@@ -22,8 +21,8 @@ const generateRefreshToken = (uid, role) =>
 
 const verifyAccessToken = (req, res, next) => {
   try {
-    var cert = fs.readFileSync("../public/publickey.crt");
-
+    const certPath = path.join(__dirname, '../public/publickey.crt');
+    var cert = fs.readFileSync(certPath, 'utf8');
     // Bear Token
     // headers: {authorization: Bearer token}
 
