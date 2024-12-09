@@ -12,6 +12,11 @@ const userSchema = new Schema(
     username: { type: String, maxLength: 255, required: true, unique: true },
     password: { type: String, required: true },
     fullname: { type: String, maxLength: 255, required: true },
+    avatar: {
+      type: String,
+      default: "https://res.cloudinary.com/dvdabwrng/image/upload/v1733216946/admin_nvp8is.jpg",
+    },
+
     email: {
       type: String,
       maxLength: 255,
@@ -36,6 +41,8 @@ const userSchema = new Schema(
       },
     },
     role: { type: Number, ref: "Role", required: true, default: 2 },
+    coursesPurchased: [{ type: Schema.Types.ObjectId, ref: "Course" }],
+    package: { type: Schema.Types.ObjectId, ref: 'Package', default: null },
     isBlocked: { type: Boolean, default: false },
     //refreshToken: { type: String },
     passwordChangedAt: { type: String },
