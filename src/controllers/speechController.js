@@ -85,13 +85,66 @@ const DeepSpeech = require('deepspeech');
 const ffmpeg = require('fluent-ffmpeg');
 const path = require('path');
 const leven = require('leven');
+const axios = require('axios');
+
+// Đường dẫn tới thư mục mô hình
+const modelsDir = path.join(__dirname, '..', 'models');
+const pbmmUrl = 'https://github.com/mozilla/DeepSpeech/releases/download/v0.9.3/deepspeech-0.9.3-models.pbmm';
+const scorerUrl = 'https://github.com/mozilla/DeepSpeech/releases/download/v0.9.3/deepspeech-0.9.3-models.scorer';
+
+// Đường dẫn tệp mô hình
+const pbmmPath = path.join(modelsDir, 'deepspeech-0.9.3-models.pbmm');
+const scorerPath = path.join(modelsDir, 'deepspeech-0.9.3-models.scorer');
+
+// Hàm tải tệp từ GitHub Releases và lưu vào thư mục
+async function downloadFile(url, outputPath) {
+  const writer = fs.createWriteStream(outputPath);
+  const response = await axios.get(url, { responseType: 'stream' });
+  response.data.pipe(writer);
+
+  return new Promise((resolve, reject) => {
+    writer.on('finish', resolve);
+    writer.on('error', reject);
+  }); 
+}
+
+// Kiểm tra và tải mô hình nếu chưa có
+async function loadModels() {
+  try {
+    if (!fs.existsSync(pbmmPath)) {
+      await downloadFile(pbmmUrl, pbmmPath);
+      console.log('Downloaded deepspeech-0.9.3-models.pbmm');
+    } else {
+      console.log('deepspeech-0.9.3-models.pbmm already exists.');
+    }
+
+    if (!fs.existsSync(scorerPath)) {
+      await downloadFile(scorerUrl, scorerPath);
+      console.log('Downloaded deepspeech-0.9.3-models.scorer');
+    } else {
+      console.log('deepspeech-0.9.3-models.scorer already exists.');
+    }
+  } catch (error) {
+    console.error('Error downloading models:', error);
+    throw error;
+  }
+}
+
+// Load mô hình DeepSpeech
+async function initializeModel() {
+  await loadModels(); // Tải mô hình nếu chưa có
+
+  const model = new DeepSpeech.Model(pbmmPath);
+  model.enableExternalScorer(scorerPath);
+  return model;
+}
 
 // Load the DeepSpeech model
-const modelPath = path.join(__dirname, '..', 'models', 'deepspeech-0.9.3-models.pbmm');
-const scorerPath = path.join(__dirname, '..', 'models', 'deepspeech-0.9.3-models.scorer');
+// const modelPath = path.join(__dirname, '..', 'models', 'deepspeech-0.9.3-models.pbmm');
+// const scorerPath = path.join(__dirname, '..', 'models', 'deepspeech-0.9.3-models.scorer');
 
-const model = new DeepSpeech.Model(modelPath);
-model.enableExternalScorer(scorerPath);
+// const model = new DeepSpeech.Model(modelPath);
+// model.enableExternalScorer(scorerPath);
 
 // Convert audio to WAV format (DeepSpeech only supports WAV)
 const convertAudioToWav = (filePath) => {
@@ -122,6 +175,7 @@ const resampleAudioTo16kHz = (inputFile) => {
 // Speech recognition and comparison
 const processSpeech = async (req, res) => {
   try {
+    const model = await initializeModel();
     const audioFile = req.file.path; // The uploaded audio file
     const targetWord = req.body.word; // The target word for comparison (e.g., "Hello")
 

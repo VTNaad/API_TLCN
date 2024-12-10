@@ -17,7 +17,7 @@ const port = process.env.PORT || 8080;
 
 //config cors
 app.use(cors({
-    origin: 'http://localhost:3000', // Cho phép yêu cầu từ frontend React
+    origin: ['http://localhost:3000', 'https://speakingenglish.netlify.app'], // Cho phép yêu cầu từ frontend React
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],       // Chỉ định các phương thức được phép
     credentials: true               // Nếu bạn cần gửi cookie hoặc xác thực
   }));

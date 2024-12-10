@@ -3,5 +3,5 @@
   "vnp_HashSecret":"YAQZL4QC66PAKWGLHKLF2Q9768MW7UU2",
   "vnp_Url":"https://sandbox.vnpayment.vn/paymentv2/vpcpay.html",
   "vnp_Api":"https://sandbox.vnpayment.vn/merchant_webapi/api/transaction",
-  "vnp_ReturnUrl": "http://localhost:8080/v1/api/payment/vnpay_return"
+  "vnp_ReturnUrl": "https://api-mobile-34lx.onrender.com/v1/api/payment/vnpay_return"
 }

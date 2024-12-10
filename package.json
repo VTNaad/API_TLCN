@@ -1,6 +1,9 @@
 {
   "name": "speakingenglish",
   "version": "1.0.0",
+  "engines": {
+    "node": "14.x"
+  },
   "description": "Backend API Speaking English",
   "main": "server.js",
   "scripts": {
